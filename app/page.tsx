@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, {useEffect, useMemo, useRef, useState } from "react";
 
 type User = {
   id: number;
@@ -25,7 +25,27 @@ export default function Page() {
   const [likes, setLikes] = useState<number[]>([]);
   const [nopes, setNopes] = useState<number[]>([]);
   const [matches, setMatches] = useState<number[]>([]);
+  const [photoDataUrl, setPhotoDataUrl] = useState<string>("");
+  const onPickPhoto = (file: File | null) => {
+  if (!file) return;
 
+  if (!file.type.startsWith("image/")) {
+    alert("画像を選択してください");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const result = reader.result?.toString() ?? "";
+    setPhotoDataUrl(result);
+    localStorage.setItem("profile_photo", result);
+  };
+  reader.readAsDataURL(file);
+};
+useEffect(() => {
+  const saved = localStorage.getItem("profile_photo");
+  if (saved) setPhotoDataUrl(saved);
+}, []);
   const current = demoUsers[index] ?? null;
 
   // スワイプ状態
@@ -103,6 +123,35 @@ export default function Page() {
       </header>
 
       <section style={{ marginTop: 14, padding: 14, border: "1px solid #eee", borderRadius: 14 }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", margin: "12px 0" }}>
+  <div
+    style={{
+      width: 72,
+      height: 72,
+      borderRadius: 18,
+      border: "1px solid #ddd",
+      overflow: "hidden",
+      background: "#fafafa",
+      display: "grid",
+      placeItems: "center"
+    }}
+  >
+    {photoDataUrl ? (
+      <img
+        src={[photoDataUrl]}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
+    ) : (
+      <span style={{ fontSize: 12 }}>No Photo</span>
+    )}
+  </div>
+
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => onPickPhoto(e.target.files?.[0] ?? null)}
+  />
+</div>
         <div style={{ fontWeight: 700, marginBottom: 8 }}>プロフィール</div>
         <input
           placeholder="名前を入力"
